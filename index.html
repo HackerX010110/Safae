@@ -15,6 +15,23 @@
     background: linear-gradient(180deg, #FFF6F9, #FBEAF0);
     padding: 1rem;
     box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-heart {
+    position: fixed;
+    bottom: -10vh;
+    font-size: 28px;
+    color: #ED93B1;
+    opacity: 0.5;
+    animation: floatUp linear infinite;
+    z-index: 0;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.5; }
+    90% { opacity: 0.5; }
+    100% { transform: translateY(-110vh) rotate(20deg); opacity: 0; }
   }
   #app {
     width: 100%;
@@ -28,6 +45,7 @@
     overflow: hidden;
     box-sizing: border-box;
     box-shadow: 0 10px 30px rgba(212, 83, 126, 0.12);
+    z-index: 1;
   }
   #app button {
     border-radius: 999px;
@@ -107,6 +125,32 @@ const PHOTO_URL = "photo.jpg";        // put your photo file next to this HTML, 
 let state = "name";
 const app = document.getElementById('content');
 let noClicks = 0;
+
+function spawnHearts() {
+  for (let i = 0; i < 12; i++) {
+    const h = document.createElement('div');
+    h.className = 'bg-heart';
+    h.textContent = '❤️';
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.animationDuration = (8 + Math.random() * 8) + 's';
+    h.style.animationDelay = (Math.random() * 8) + 's';
+    h.style.fontSize = (18 + Math.random() * 22) + 'px';
+    document.body.appendChild(h);
+  }
+}
+spawnHearts();
+
+function dodge(btn) {
+  btn.style.position = 'relative';
+  const move = () => {
+    const maxX = 80, maxY = 40;
+    const x = (Math.random() - 0.5) * maxX * 2;
+    const y = (Math.random() - 0.5) * maxY * 2;
+    btn.style.transform = `translate(${x}px, ${y}px)`;
+  };
+  btn.addEventListener('mouseenter', move);
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); move(); }, { passive: false });
+}
 
 function stickers(emojis) {
   return `<div style="margin-bottom:8px">${emojis.map(e => `<span class="sticker">${e}</span>`).join(' ')}</div>`;
@@ -210,38 +254,61 @@ function render() {
 }
 
 function renderLoveQ() {
-  const yesSize = Math.min(16 + noClicks * 12, 70);
-  const fontSize = Math.min(14 + noClicks * 3, 28);
   const prompts = [
     "Okay real talk — do you like me back? 👀",
     "I'll just leave this button right here, no pressure 😌",
     "The button is getting thirsty for attention 🥤",
     "It's basically a billboard now 🚧",
-    "At this point it's load-bearing 😂 just click it"
+    "Okay this is out of control 😂"
   ];
-  const promptText = prompts[Math.min(noClicks, prompts.length - 1)];
+  const maxStage = prompts.length - 1;
+  const stage = Math.min(noClicks, maxStage);
+  const promptText = prompts[stage];
+
+  if (stage === maxStage) {
+    document.body.style.overflow = 'hidden';
+    document.getElementById('app').style.display = 'none';
+    const fullYes = document.createElement('div');
+    fullYes.id = 'fullYes';
+    fullYes.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#D4537E;color:#FBEAF0;font-size:clamp(28px,10vw,48px);font-weight:700;cursor:pointer;z-index:9999;text-align:center;padding:1rem;';
+    fullYes.textContent = 'Yes 💖';
+    document.body.appendChild(fullYes);
+    fullYes.addEventListener('click', showFinalMessage);
+    fullYes.addEventListener('touchend', (e) => { e.preventDefault(); showFinalMessage(); });
+    return;
+  }
+
+  const yesSize = 16 + noClicks * 12;
+  const fontSize = 14 + noClicks * 3;
 
   app.innerHTML = `
     ${stickers(['💗','😳','💗'])}
     <h2>${promptText}</h2>
     <div class="btn-row" style="align-items:center">
-      <button id="loveYes" style="padding:${yesSize}px ${Math.min(yesSize * 1.5, 60)}px;font-size:${fontSize}px;background:#D4537E;color:#FBEAF0;border:none;width:100%;max-width:100%">Yes 💖</button>
+      <button id="loveYes" style="padding:${yesSize}px ${yesSize * 1.5}px;font-size:${fontSize}px;background:#D4537E;color:#FBEAF0;border:none;width:100%;max-width:100%">Yes 💖</button>
       <button id="loveNo">No</button>
     </div>
   `;
-  document.getElementById('loveYes').onclick = () => {
-    app.innerHTML = `
-      ${stickers(['😍','💞','🥰','🎊'])}
-      <h2>KNEW IT. 🥹</h2>
-      <p style="font-size:clamp(17px,5vw,20px);color:#993556;font-weight:500">I love you too, ${TARGET_NAME} ${TARGET_FAMILY} 💖🌹</p>
-      <p class="sub">This message will self-destruct... never. I'm keeping this forever.</p>
-      <div style="font-size:clamp(22px,6vw,28px);margin-top:1rem">🌸💕🧸💕🌸</div>
-    `;
-  };
+  document.getElementById('loveYes').onclick = showFinalMessage;
+  dodge(document.getElementById('loveNo'));
   document.getElementById('loveNo').onclick = () => {
     noClicks++;
     renderLoveQ();
   };
+}
+
+function showFinalMessage() {
+  document.body.style.overflow = '';
+  const fullYes = document.getElementById('fullYes');
+  if (fullYes) fullYes.remove();
+  document.getElementById('app').style.display = '';
+  app.innerHTML = `
+    ${stickers(['😍','💞','🥰','🎊'])}
+    <h2>KNEW IT. 🥹</h2>
+    <p style="font-size:clamp(17px,5vw,20px);color:#993556;font-weight:500">I love you too, ${TARGET_NAME} ${TARGET_FAMILY} 💖🌹</p>
+    <p class="sub">This message will self-destruct... never. I'm keeping this forever.</p>
+    <div style="font-size:clamp(22px,6vw,28px);margin-top:1rem">🌸💕🧸💕🌸</div>
+  `;
 }
 
 render();
