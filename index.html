@@ -116,11 +116,9 @@
 </div>
 
 <script>
-// ====== EDIT THESE ======
-const TARGET_NAME = "Safae";          // expected first name (case-insensitive)
-const TARGET_FAMILY = "Astour";       // expected last name (case-insensitive)
-const PHOTO_URL = "photo.jpg";        // put your photo file next to this HTML, or use a full URL
-// =========================
+const TARGET_NAME = "Safae";
+const TARGET_FAMILY = "Astour";
+const PHOTO_URL = "photo.jpg";
 
 let state = "name";
 const app = document.getElementById('content');
@@ -255,15 +253,15 @@ function render() {
 
 function renderLoveQ() {
   const prompts = [
-    "Okay real talk — do you like me back? 👀",
-    "An error occurred in the system. Please redo your answer. 🤥",
-    "I know you pressed ""No"" by mistake, you can try again. 😉",
-    "This is the last time I'll ask you: Do you love me? You're completely free to answer however you truly feel. I won't pressure you or try to influence your decision. I just want an honest answer.",
-    "Okay this is out of control 😂"
+    { title: "Okay real talk — do you like me back? 👀", sub: "" },
+    { title: "An error occurred in the system 🤥", sub: "Please redo your answer." },
+    { title: "I know you pressed 'No' by mistake 😉", sub: "You can try again." },
+    { title: "This is the last time I'll ask...", sub: "Do you love me? Answer however you truly feel — no pressure, I just want the honest answer 💗" },
+    { title: "Okay this is out of control 😂", sub: "" }
   ];
   const maxStage = prompts.length - 1;
   const stage = Math.min(noClicks, maxStage);
-  const promptText = prompts[stage];
+  const prompt = prompts[stage];
 
   if (stage === maxStage) {
     document.body.style.overflow = 'hidden';
@@ -283,7 +281,8 @@ function renderLoveQ() {
 
   app.innerHTML = `
     ${stickers(['💗','😳','💗'])}
-    <h2>${promptText}</h2>
+    <h2>${prompt.title}</h2>
+    ${prompt.sub ? `<p class="sub" style="font-size:15px;line-height:1.6;margin-bottom:1.25rem">${prompt.sub}</p>` : ''}
     <div class="btn-row" style="align-items:center">
       <button id="loveYes" style="padding:${yesSize}px ${yesSize * 1.5}px;font-size:${fontSize}px;background:#D4537E;color:#FBEAF0;border:none;width:100%;max-width:100%">Yes 💖</button>
       <button id="loveNo">No</button>
@@ -304,7 +303,7 @@ function showFinalMessage() {
   document.getElementById('app').style.display = '';
   app.innerHTML = `
     ${stickers(['😍','💞','🥰','🎊'])}
-    <h2>Knew you would say yes!. 🥹</h2>
+    <h2>Knew you would say yes! 🥹</h2>
     <p style="font-size:clamp(17px,5vw,20px);color:#993556;font-weight:500">I love you too, ${TARGET_NAME} ${TARGET_FAMILY} 💖🌹</p>
     <p class="sub">This message will self-destruct... never. I'm keeping this forever.</p>
     <div style="font-size:clamp(22px,6vw,28px);margin-top:1rem">🌸💕🧸💕🌸</div>
